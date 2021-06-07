@@ -127,7 +127,7 @@ COURSES=("Linux_course/Linux_course1","Linux_course/Linux_course2","machinelearn
 MOUNT=0 # 0 for mount and 1 for unmount
 
 
-while getopts "hm:u:" opt;
+while getopts "hmuc:" opt;
 do
         case ${opt} in
                 h)
@@ -144,7 +144,7 @@ do
                         DIR=${OPTARG}
                         ;;
                 *)
-                                        echo Invalid Arguements
+                        echo Invalid Arguements
                         usage
                         exit 1
                         ;;
@@ -156,17 +156,28 @@ TARGET_PATH="home/trainee"
 
 # Change ownership of directories
 chown root:root /data/course 
-chowm trianee:ftpaccess /home/trainee
+chown trainee:ftpaccess /home/trainee
 
 # Change permissions
 chmod 455 /home/trainee
 
+
+
 if [ $MOUNT==0 ]
 then
-        exit_code=mount_course
+	if [ -z $3 ]
+	then
+		exit_code=mount_all
+	else
+        	exit_code=mount_course
+	fi
 else
-        exit_code=unmount_course
+	if [ -z $3 ]
+        then 
+                exit_code=unmount_all
+        else
+                exit_code=unmount_course
+        fi
 fi
-
-exit exit_code
+exit $exit_code
 
