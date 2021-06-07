@@ -22,6 +22,7 @@ function usage()
     echo ./course_mount.sh -h To print this help message
     echo ./course_mount.sh -m -c [course] For mounting a given course
     echo ./course_mount.sh -u -c [course] For unmounting a given course
+    echo "If course name is ommited all courses will be (un)mounted"
 }
 
 
@@ -33,6 +34,8 @@ function check_mount()
                 if $(mount | grep $DIR)
                 then
                         return 0 
+                fi
+        fi
 }
 
 # Mount the course
