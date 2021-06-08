@@ -170,17 +170,21 @@ if [ $MOUNT==0 ]
 then
 	if [ -z $3 ]
 	then
-		exit_code=mount_all
+		mount_all
+		exit 0
 	else
-        	exit_code=mount_course
+        	mount_course
+		exit 0
 	fi
 else
 	if [ -z $3 ]
         then 
-                exit_code=unmount_all
+                unmount_all
+		exit 0
         else
-                exit_code=unmount_course
+                unmount_course
+		exit 0
         fi
 fi
-exit $exit_code
+
 
