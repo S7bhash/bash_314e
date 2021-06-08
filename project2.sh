@@ -25,111 +25,7 @@ function usage()
     echo "If course name is ommited all courses will be (un)mounted"
 }
 
-
-# check if course is mounted or not 
-function check_mount()
-{
-        if [ $check_dir==1 ]
-        then
-                if $(mount | grep $DIR)
-                then
-                        return 0 
-                fi
-        fi
-}
-
-# Mount the course
-function mount_course()
-{
-        check_dir=0 # flag to check if given directory is present or not
-
-        for course in $COURSES
-        do
-                if [ $DIR==$course ]
-                then
-                        $check_dir=1
-                        break
-                fi
-        done
-
-        if [ $check_dir==0 ]
-        then
-                echo "Course doesn't exists"
-                exit -1
-        elif [ !check_mount ]
-        then
-                echo "Course doesn't exists"
-                exit -1
-        elif [ !check_mount ]
-        then
-                echo The course is already mounted
-                exit 2
-        else
-                bindfs -p a-w -u trainee -g ftpaccess ${COURSE_PATH} ${TARGET_PATH}
-                return 0
-        fi
-
-
-}
-
-# Mount all courses
-function mount_all()
-{
-        for course in $COURSES
-        do
-                bindfs -p a-w -u trainee -g ftpaccess ${course} ${TARGET_PATH}
-        done
-        return 0
-}
-
-# Unmount Course
-function unmount_course()
-{
-        check_dir=0 # flag to check if given directory is present or not
-
-        for course in $COURSES
-        do
-                if [ $DIR==$course ]
-                then
-                        $check_dir=1
-                        break
-                fi
-        done
-
-        if [ $check_dir==0 ]
-        then
-                echo "Course doesn't exists"
-                exit -1
-        elif [ !check_mount ]
-        then 
-                echo The course is already mounted
-                exit 2
-        else
-                umount -f $COURSE_PATH
-                return 0
-        fi
-
-}
-
-#Unmount all courses
-function unmount_all()
-{
-        for course in $COURSES
-        do
-               umount -f $course
-        done
-        return 0
-
-}
-
-
-# Array to store leaf directories
-
-COURSES=("Linux_course/Linux_course1","Linux_course/Linux_course2","machinelearning/machinelearning1","machinelearning/machinelearning2","SQLFundamentals1","SQLFundamentals2","SQLFundamentals3")
-
-MOUNT=0 # 0 for mount and 1 for unmount
-
-
+DIR="/data/course"
 while getopts "hmuc:" opt;
 do
         case ${opt} in
@@ -138,10 +34,10 @@ do
                         exit 0
                         ;;
                 m)
-                        $MOUNT=0
+                        MOUNT=0  # 0 for mount and 1 for unmount
                         ;;
                 u)
-                        $MOUNT=1
+                        MOUNT=1
                         ;;
                 c)
                         DIR=${OPTARG}
@@ -154,21 +50,127 @@ do
         esac
 done
 
-COURSE_PATH=$DIR
-TARGET_PATH="home/trainee"
+
+COURSE_PATH=/data/course/$DIR
+TARGET_PATH="/home/trainee"
+
+
+# Array to store leaf directories
+declare -a COURSES=("Linux_course/Linux_course1"
+                        "Linux_course/Linux_course2" "machinelearning/machinelearning1"
+                        "machinelearning/machinelearning2","SQLFundamentals1"
+                        "SQLFundamentals2" "SQLFundamentals3")
+
+
+
+# check if course is mounted or not 
+function check_mount()
+{
+        echo "Checking for mount"
+        CHECK_FOR_MOUNT=1
+        if [ $(mount | grep $DIR | wc -l) -gt 0 ]
+        then
+                CHECK_FOR_MOUNT=0
+        fi
+        
+}
+
+# Mount the course
+function mount_course()
+{
+
+        for course in $COURSES
+        do
+                
+                if [ $DIR==$course ]
+                then
+                        local check_dir=1 # flag to check if given directory is present or not
+                        break
+                fi
+        done
+        
+        if [ $check_dir -eq 0 ]
+        then
+                echo "Course doesn't exists"
+                exit -1
+        elif [  $CHECK_FOR_MOUNT -eq 0 ]
+        then
+                echo The course is already mounted
+                exit 2
+        else
+                echo Mounting $DIR
+                bindfs -p a-w -u trainee -g ftpaccess ${COURSE_PATH} ${TARGET_PATH}
+        fi
+
+
+}
+
+# Mount all courses
+function mount_all()
+{
+        echo Mounting All Courses
+        for course in $COURSES
+        do
+                bindfs -p a-w -u trainee -g ftpaccess data/course/${course} ${TARGET_PATH}
+        done
+        return 0
+}
+
+# Unmount Course
+function unmount_course()
+{
+        
+        for course in $COURSES
+        do
+                if [ $DIR==$course ]
+                then
+                        local check_dir=1  # flag to check if given directory is present or not
+                        break
+                fi
+        done
+
+        if [ $check_dir -eq 0 ]
+        then
+                echo "Course doesn't exists"
+                exit -1
+        elif [ $CHECK_FOR_MOUNT -eq 1 ]
+        then 
+                echo The course is NOT mounted
+                exit 2
+        else
+                echo "Unmounting "$DIR
+                umount -f $COURSE_PATH
+        fi
+
+}
+
+#Unmount all courses
+function unmount_all()
+{
+        echo "Unmounting all courses"
+        for course in $COURSES
+        do
+               umount -f data/course/$course
+        done
+        exit 0
+
+}
+
+
 
 # Change ownership of directories
-chown root:root /data/course 
-chown trainee:ftpaccess /home/trainee
+sudo chown root:root data/course 
+sudo chown trainee:ftpaccess home/trainee
 
 # Change permissions
-chmod 455 /home/trainee
+sudo chmod 455 home/trainee
 
 
 
-if [ $MOUNT==0 ]
+if [ $MOUNT -eq 0 ]
 then
-	if [ -z $3 ]
+        check_mount
+	if [ -z $2 ]
 	then
 		mount_all
 		exit 0
@@ -177,6 +179,7 @@ then
 		exit 0
 	fi
 else
+        check_mount
 	if [ -z $3 ]
         then 
                 unmount_all
