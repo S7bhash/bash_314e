@@ -159,8 +159,8 @@ function unmount_all()
 
 
 # Change ownership of directories
-sudo chown root:root data/course 
-sudo chown trainee:ftpaccess home/trainee
+sudo chown root:root /data/course 
+sudo chown trainee:ftpaccess /home/trainee
 
 # Change permissions
 sudo chmod 455 home/trainee
