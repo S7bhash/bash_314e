@@ -13,7 +13,7 @@
 #       1: Invalid Argruements
 #       2: Already mounted or unmounted
 #       -1: Course doesn't exist 
-
+#	-2: Operation failed
 
 
 function usage()
@@ -99,7 +99,11 @@ function mount_course()
                 exit 2
         else
                 echo Mounting $DIR
-                bindfs -p a-w -u trainee -g ftpaccess ${COURSE_PATH} ${TARGET_PATH}
+                if ! bindfs -p a-w -u trainee -g ftpaccess ${COURSE_PATH} ${TARGET_PATH}
+		then 
+			echo "Mount operation failed"
+			exit -2
+		fi
         fi
 
 
@@ -111,7 +115,11 @@ function mount_all()
         echo Mounting All Courses
         for course in $COURSES
         do
-                bindfs -p a-w -u trainee -g ftpaccess data/course/${course} ${TARGET_PATH}
+                if ! bindfs -p a-w -u trainee -g ftpaccess data/course/${course} ${TARGET_PATH}
+		then
+			echo "Mounting operation failed"
+			exit -2
+		fi
         done
         return 0
 }
@@ -139,7 +147,11 @@ function unmount_course()
                 exit 2
         else
                 echo "Unmounting "$DIR
-                umount -f $COURSE_PATH
+                if ! umount -f $COURSE_PATH
+		then
+			echo "Unmounting operation failed"
+			exit -2
+		fi
         fi
 
 }
